@@ -111,6 +111,75 @@ body {
   color: var(--accent);
 }
 
+.themes-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  z-index: 40;
+}
+.themes-bar .ctl-label { padding-left: 0; margin-right: 2px; }
+
+.theme-btn {
+  background: transparent;
+  color: var(--fg-dim);
+  border: 1px solid var(--border);
+  padding: 3px 10px 3px 8px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.1s, background 0.1s, border-color 0.1s, opacity 0.1s;
+  opacity: 0.55;
+}
+.theme-btn:hover { color: var(--fg); opacity: 0.85; }
+.theme-btn.active {
+  color: var(--fg);
+  background: var(--bg-3);
+  border-color: rgba(255, 255, 255, 0.18);
+  opacity: 1;
+}
+
+.theme-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+  flex: none;
+}
+.theme-dot.t-war       { background: #d94040; }
+.theme-dot.t-religion  { background: gold; }
+.theme-dot.t-discovery { background: #7fb6ff; }
+.theme-dot.t-cultural  { background: #6fe0a0; }
+.theme-dot.t-period    {
+  background: #4a5670;
+  background-image: repeating-linear-gradient(45deg, transparent 0, transparent 2px, rgba(255,255,255,0.4) 2px, rgba(255,255,255,0.4) 3px);
+}
+.theme-dot.t-reign     { background: #d68a4f; }
+.theme-dot.t-event     { background: #b0a8c8; }
+
+.themes-actions { display: inline-flex; gap: 4px; margin-left: auto; }
+.themes-mini {
+  background: transparent;
+  color: var(--fg-dim);
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: inherit;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.themes-mini:hover { color: var(--fg); background: var(--bg-3); }
+
 .scroll-container {
   position: relative;
   overflow-x: auto;

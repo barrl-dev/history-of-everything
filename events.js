@@ -220,5 +220,82 @@ window.HISTORY_EVENTS = [
   { region: "oceania", start: 1788, end: 1788, title: "First Fleet to Australia", type: "event" },
   { region: "oceania", start: 1840, end: 1840, title: "Treaty of Waitangi (NZ)", type: "event" },
   { region: "oceania", start: 1901, end: 1901, title: "Federation of Australia", type: "event" },
-  { region: "oceania", start: 1942, end: 1942, title: "Battle of the Coral Sea", type: "war" }
+  { region: "oceania", start: 1942, end: 1942, title: "Battle of the Coral Sea", type: "war" },
+
+  // ========================= ADDITIONS: Innovation, Religion, Culture =========================
+
+  // ---- EUROPE ----
+  { region: "europe", start: 380, end: 380, title: "Christianity becomes Roman state religion", type: "religion" },
+  { region: "europe", start: 1184, end: 1184, title: "Medieval Inquisition established", type: "religion" },
+  { region: "europe", start: 1304, end: 1374, title: "Petrarch (Renaissance humanism)", type: "cultural" },
+  { region: "europe", start: 1378, end: 1417, title: "Western Schism (rival popes)", type: "religion" },
+  { region: "europe", start: 1440, end: 1440, title: "Gutenberg's printing press", type: "discovery" },
+  { region: "europe", start: 1452, end: 1519, title: "Leonardo da Vinci", type: "cultural" },
+  { region: "europe", start: 1475, end: 1564, title: "Michelangelo", type: "cultural" },
+  { region: "europe", start: 1564, end: 1616, title: "William Shakespeare", type: "cultural" },
+  { region: "europe", start: 1609, end: 1609, title: "Galileo's telescope observations", type: "discovery" },
+  { region: "europe", start: 1685, end: 1750, title: "J. S. Bach", type: "cultural" },
+  { region: "europe", start: 1715, end: 1789, title: "The Enlightenment", type: "period" },
+  { region: "europe", start: 1755, end: 1755, title: "Lisbon Earthquake", type: "event" },
+  { region: "europe", start: 1756, end: 1791, title: "Mozart", type: "cultural" },
+  { region: "europe", start: 1769, end: 1769, title: "Watt's improved steam engine", type: "discovery" },
+  { region: "europe", start: 1770, end: 1827, title: "Beethoven", type: "cultural" },
+  { region: "europe", start: 1796, end: 1796, title: "Smallpox vaccine (Jenner)", type: "discovery" },
+  { region: "europe", start: 1804, end: 1804, title: "Steam locomotive (Trevithick)", type: "discovery" },
+  { region: "europe", start: 1816, end: 1816, title: "Year Without a Summer (Tambora)", type: "event" },
+  { region: "europe", start: 1837, end: 1837, title: "Electric telegraph", type: "discovery" },
+  { region: "europe", start: 1869, end: 1869, title: "Periodic Table (Mendeleev)", type: "discovery" },
+  { region: "europe", start: 1885, end: 1885, title: "First petrol automobile (Benz)", type: "discovery" },
+  { region: "europe", start: 1895, end: 1895, title: "X-rays discovered (Röntgen)", type: "discovery" },
+  { region: "europe", start: 1905, end: 1905, title: "Einstein's Special Relativity", type: "discovery" },
+  { region: "europe", start: 1912, end: 1912, title: "Titanic sinks", type: "event" },
+  { region: "europe", start: 1918, end: 1920, title: "Spanish Flu pandemic", type: "event" },
+  { region: "europe", start: 1928, end: 1928, title: "Penicillin discovered (Fleming)", type: "discovery" },
+  { region: "europe", start: 1953, end: 1953, title: "DNA structure described", type: "discovery" },
+  { region: "europe", start: 1962, end: 1965, title: "Vatican II Council", type: "religion" },
+  { region: "europe", start: 1986, end: 1986, title: "Chernobyl disaster", type: "event" },
+  { region: "europe", start: 1989, end: 1989, title: "World Wide Web (Berners-Lee at CERN)", type: "discovery" },
+
+  // ---- MIDDLE EAST ----
+  { region: "middle-east", start: 70, end: 70, title: "Roman destruction of the Second Temple", type: "religion" },
+  { region: "middle-east", start: 325, end: 325, title: "Council of Nicaea", type: "religion" },
+  { region: "middle-east", start: 820, end: 820, title: "Al-Khwarizmi & the birth of algebra", type: "discovery" },
+  { region: "middle-east", start: 1021, end: 1021, title: "Alhazen's Book of Optics", type: "discovery" },
+
+  // ---- SOUTH ASIA ----
+  { region: "south-asia", start: -599, end: -527, title: "Mahavira (Jainism)", type: "religion" },
+  { region: "south-asia", start: 499, end: 499, title: "Aryabhata: zero, π, astronomy", type: "discovery" },
+
+  // ---- EAST ASIA ----
+  { region: "east-asia", start: 67, end: 67, title: "Buddhism arrives in China", type: "religion" },
+  { region: "east-asia", start: 105, end: 105, title: "Paper invented (Cai Lun)", type: "discovery" },
+  { region: "east-asia", start: 538, end: 538, title: "Buddhism arrives in Japan", type: "religion" },
+  { region: "east-asia", start: 1010, end: 1010, title: "Tale of Genji (Murasaki Shikibu)", type: "cultural" },
+  { region: "east-asia", start: 1041, end: 1048, title: "Movable type printing (Bi Sheng)", type: "discovery" },
+
+  // ---- AFRICA ----
+  { region: "africa", start: 350, end: 350, title: "Aksum converts to Christianity", type: "religion" },
+  { region: "africa", start: 1804, end: 1903, title: "Sokoto Caliphate", type: "period" },
+  { region: "africa", start: 1879, end: 1879, title: "Anglo-Zulu War", type: "war" },
+  { region: "africa", start: 1884, end: 1885, title: "Berlin Conference (formalizes Scramble)", type: "event" },
+  { region: "africa", start: 1948, end: 1948, title: "Apartheid established (S. Africa)", type: "event" },
+  { region: "africa", start: 1963, end: 1963, title: "Organization of African Unity founded", type: "event" },
+  { region: "africa", start: 2011, end: 2011, title: "South Sudan independence", type: "event" },
+
+  // ---- AMERICAS ----
+  { region: "americas", start: 1879, end: 1879, title: "Edison's incandescent light bulb", type: "discovery" },
+  { region: "americas", start: 1903, end: 1903, title: "Wright Brothers' first flight", type: "discovery" },
+  { region: "americas", start: 1906, end: 1906, title: "San Francisco earthquake", type: "event" },
+  { region: "americas", start: 1947, end: 1947, title: "Transistor invented (Bell Labs)", type: "discovery" },
+  { region: "americas", start: 1955, end: 1968, title: "US Civil Rights Movement", type: "event" },
+  { region: "americas", start: 2007, end: 2007, title: "iPhone introduced", type: "discovery" },
+
+  // ---- OCEANIA ----
+  { region: "oceania", start: -1500, end: -500, title: "Lapita culture", type: "period" },
+  { region: "oceania", start: 1521, end: 1521, title: "Magellan crosses the Pacific", type: "event" },
+  { region: "oceania", start: 1642, end: 1642, title: "Tasman reaches NZ & Tasmania", type: "event" },
+  { region: "oceania", start: 1845, end: 1872, title: "New Zealand Land Wars", type: "war" },
+  { region: "oceania", start: 1907, end: 1907, title: "New Zealand becomes a Dominion", type: "event" },
+  { region: "oceania", start: 1975, end: 1975, title: "Papua New Guinea independence", type: "event" },
+  { region: "oceania", start: 1985, end: 1985, title: "Rainbow Warrior bombing", type: "event" }
 ];

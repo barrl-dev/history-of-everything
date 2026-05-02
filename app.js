@@ -15,6 +15,9 @@
   let pxPerYear = ZOOM_LEVELS["1"];
   let activeZoom = "1";
 
+  const ALL_THEMES = ["war", "religion", "discovery", "cultural", "period", "reign", "event"];
+  const activeThemes = new Set(ALL_THEMES);
+
   const regions = window.HISTORY_REGIONS;
   const events = window.HISTORY_EVENTS.slice();
   const eventsByRegion = {};
@@ -25,6 +28,10 @@
   Object.keys(eventsByRegion).forEach(function (k) {
     eventsByRegion[k].sort(function (a, b) { return a.start - b.start; });
   });
+
+  function visibleEvents(regionId) {
+    return eventsByRegion[regionId].filter(function (e) { return activeThemes.has(e.type); });
+  }
 
   const scroll = document.getElementById("scroll");
   const timeline = document.getElementById("timeline");
@@ -169,14 +176,15 @@
     const frag = document.createDocumentFragment();
 
     regions.forEach(function (r) {
-      const list = eventsByRegion[r.id];
-      const rowCount = packRows(list);
+      const list = visibleEvents(r.id);
+      const rowCount = Math.max(1, packRows(list));
       const byRow = [];
       for (let i = 0; i < rowCount; i++) byRow.push([]);
       list.forEach(function (ev) { byRow[ev._row].push(ev); });
 
       const lane = document.createElement("div");
       lane.className = "lane";
+      if (list.length === 0) lane.classList.add("lane-empty");
       lane.style.setProperty("--region-color", r.color);
       lane.style.width = width + "px";
       lane.style.height = (ROW_PADDING_TOP + rowCount * ROW_HEIGHT + LANE_BOTTOM_PAD) + "px";
@@ -338,6 +346,30 @@
 
   document.querySelectorAll(".eras button").forEach(function (b) {
     b.addEventListener("click", function () { jumpToYear(parseInt(b.dataset.year, 10), true); });
+  });
+
+  function setThemeButtonState() {
+    document.querySelectorAll(".theme-btn").forEach(function (b) {
+      b.classList.toggle("active", activeThemes.has(b.dataset.theme));
+    });
+  }
+  document.querySelectorAll(".theme-btn").forEach(function (b) {
+    b.addEventListener("click", function () {
+      const t = b.dataset.theme;
+      if (activeThemes.has(t)) activeThemes.delete(t); else activeThemes.add(t);
+      setThemeButtonState();
+      render();
+    });
+  });
+  document.getElementById("themesAll").addEventListener("click", function () {
+    ALL_THEMES.forEach(function (t) { activeThemes.add(t); });
+    setThemeButtonState();
+    render();
+  });
+  document.getElementById("themesNone").addEventListener("click", function () {
+    activeThemes.clear();
+    setThemeButtonState();
+    render();
   });
 
   document.getElementById("jumpBtn").addEventListener("click", function () {
