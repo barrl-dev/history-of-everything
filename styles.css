@@ -255,13 +255,10 @@ body {
 
 .event-label {
   position: absolute;
-  left: 0;
+  left: 6px;
   top: 0;
   bottom: 0;
-  display: flex;
-  align-items: center;
-  padding-left: 6px;
-  padding-right: 4px;
+  line-height: 22px;
   white-space: nowrap;
   pointer-events: none;
   color: white;
@@ -271,6 +268,12 @@ body {
     0 0 1px rgba(0, 0, 0, 0.9);
   z-index: 1;
 }
+.event[data-inside] .event-label {
+  right: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.event-marker .event-label { display: none; }
 
 .event-period::before {
   background: linear-gradient(to bottom,

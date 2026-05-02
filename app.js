@@ -65,8 +65,8 @@
     return rowEnds.length;
   }
 
-  // Within one row, decide whether each event is rendered standalone (with label)
-  // or grouped into a cluster pill that shows just a count.
+  // Within one row, decide whether each event is rendered standalone (with label),
+  // as a label-less marker, or grouped into a cluster pill that shows just a count.
   function clusterRow(rowEvents, zoom) {
     const sorted = rowEvents.slice().sort(function (a, b) { return a.start - b.start; });
     const items = [];
@@ -75,38 +75,56 @@
       const ev = sorted[i];
       const startPx = (ev.start - TIME_START) * zoom;
       const barWidth = Math.max(MIN_BAR_PX, (ev.end - ev.start) * zoom);
-      const endPx = startPx + barWidth;
-
       const next = sorted[i + 1];
       const nextStartPx = next ? (next.start - TIME_START) * zoom : Infinity;
 
-      const labelClaim = startPx + Math.max(barWidth, LABEL_PX);
-      const standalone = barWidth >= LABEL_PX || nextStartPx >= labelClaim + 4;
-
-      if (standalone) {
+      // Wide enough that the label fits inside the bar.
+      if (barWidth >= LABEL_PX) {
         items.push({
           kind: "event",
           ev: ev,
           startPx: startPx,
           barWidth: barWidth,
-          hitWidth: Math.max(barWidth, LABEL_PX)
+          hitWidth: barWidth,
+          labelInside: true
         });
         i++;
-      } else {
-        const cluster = { kind: "cluster", events: [ev], startPx: startPx, endPx: endPx };
+        continue;
+      }
+
+      // Narrow, but the next event is far enough that the label can flow into the gap.
+      const labelClaim = startPx + Math.max(barWidth, LABEL_PX);
+      if (nextStartPx >= labelClaim + 4) {
+        items.push({
+          kind: "event",
+          ev: ev,
+          startPx: startPx,
+          barWidth: barWidth,
+          hitWidth: LABEL_PX,
+          labelInside: false
+        });
         i++;
-        while (i < sorted.length) {
-          const e2 = sorted[i];
-          const sp2 = (e2.start - TIME_START) * zoom;
-          const bw2 = Math.max(MIN_BAR_PX, (e2.end - e2.start) * zoom);
-          if (sp2 < cluster.endPx + LABEL_PX) {
-            cluster.events.push(e2);
-            cluster.endPx = Math.max(cluster.endPx, sp2 + bw2);
-            i++;
-          } else {
-            break;
-          }
-        }
+        continue;
+      }
+
+      // Narrow with no room — start gathering subsequent narrow events into a cluster.
+      const cluster = { kind: "cluster", events: [ev], startPx: startPx, endPx: startPx + barWidth };
+      i++;
+      while (i < sorted.length) {
+        const e2 = sorted[i];
+        const sp2 = (e2.start - TIME_START) * zoom;
+        const bw2 = Math.max(MIN_BAR_PX, (e2.end - e2.start) * zoom);
+        if (bw2 >= LABEL_PX) break; // a wide event always stands alone
+        if (sp2 >= cluster.endPx + LABEL_PX) break; // far enough to be its own item
+        cluster.events.push(e2);
+        cluster.endPx = Math.max(cluster.endPx, sp2 + bw2);
+        i++;
+      }
+
+      if (cluster.events.length === 1) {
+        // Solo narrow event with no room — render as a label-less marker.
+        items.push({ kind: "marker", ev: cluster.events[0], startPx: cluster.startPx, barWidth: cluster.endPx - cluster.startPx });
+      } else {
         items.push(cluster);
       }
     }
@@ -180,6 +198,7 @@
             const ev = item.ev;
             const div = document.createElement("div");
             div.className = "event event-" + ev.type;
+            if (item.labelInside) div.dataset.inside = "1";
             div.style.left = item.startPx + "px";
             div.style.top = top + "px";
             div.style.setProperty("--bar-width", item.barWidth + "px");
@@ -192,6 +211,17 @@
             lbl.textContent = ev.title;
             div.appendChild(lbl);
 
+            lane.appendChild(div);
+          } else if (item.kind === "marker") {
+            const ev = item.ev;
+            const div = document.createElement("div");
+            div.className = "event event-" + ev.type + " event-marker";
+            div.style.left = item.startPx + "px";
+            div.style.top = top + "px";
+            div.style.setProperty("--bar-width", item.barWidth + "px");
+            div.style.width = Math.max(item.barWidth, 6) + "px";
+            div._event = ev;
+            div._region = r;
             lane.appendChild(div);
           } else {
             const span = item.endPx - item.startPx;
