@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>History of Everything &mdash; A World Timeline</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>History of Everything</h1>
+    <div class="controls">
+      <div class="zoom" role="group" aria-label="Zoom">
+        <span class="ctl-label">Zoom</span>
+        <button data-zoom="0.5">0.5&times;</button>
+        <button data-zoom="1" class="active">1&times;</button>
+        <button data-zoom="2">2&times;</button>
+        <button data-zoom="4">4&times;</button>
+      </div>
+      <div class="jump">
+        <span class="ctl-label">Jump</span>
+        <input type="number" id="jumpYear" placeholder="year" />
+        <button id="jumpBtn">Go</button>
+      </div>
+      <div class="eras">
+        <span class="ctl-label">Era</span>
+        <button data-year="-2500">Bronze Age</button>
+        <button data-year="-400">Classical</button>
+        <button data-year="800">Medieval</button>
+        <button data-year="1500">Early Modern</button>
+        <button data-year="1776">Revolutions</button>
+        <button data-year="1900">Modern</button>
+      </div>
+    </div>
+    <div class="current-year" id="currentYear">&mdash;</div>
+  </header>
+
+  <div class="scroll-container" id="scroll" tabindex="0">
+    <div class="timeline" id="timeline">
+      <div class="ruler" id="ruler"></div>
+      <div class="lanes" id="lanes"></div>
+    </div>
+  </div>
+
+  <div class="tooltip" id="tooltip" hidden></div>
+
+  <footer class="legend" id="legend"></footer>
+
+  <script src="events.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
