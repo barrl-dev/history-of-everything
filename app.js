@@ -6,8 +6,11 @@
   const ROW_HEIGHT = 28;
   const ROW_PADDING_TOP = 36;
   const LANE_BOTTOM_PAD = 12;
-  const MIN_EVENT_PX = 90;
+  const LABEL_PX = 70;       // horizontal pixels needed to display an event label
+  const MIN_BAR_PX = 3;      // smallest visible bar width
+  const CLUSTER_MIN_PX = 26; // smallest cluster pill width
   const ZOOM_LEVELS = { "0.5": 2, "1": 4, "2": 8, "4": 16 };
+  const ZOOM_ORDER = ["0.5", "1", "2", "4"];
 
   let pxPerYear = ZOOM_LEVELS["1"];
   let activeZoom = "1";
@@ -36,16 +39,19 @@
     return y + (y < 1000 ? " CE" : "");
   }
 
-  function packRows(list, zoom) {
-    const minYears = MIN_EVENT_PX / zoom;
-    const gapYears = 6 / zoom;
+  function rangeOf(ev) {
+    return ev.start === ev.end ? formatYear(ev.start) : (formatYear(ev.start) + " – " + formatYear(ev.end));
+  }
+
+  // Pack purely by temporal overlap. Events with no time overlap share a row.
+  function packRows(list) {
     const rowEnds = [];
     list.forEach(function (ev) {
-      const effEnd = Math.max(ev.end, ev.start) + Math.max(0, minYears - Math.max(0, ev.end - ev.start));
+      const evEnd = Math.max(ev.end, ev.start);
       let placed = false;
       for (let i = 0; i < rowEnds.length; i++) {
-        if (ev.start >= rowEnds[i] + gapYears) {
-          rowEnds[i] = effEnd;
+        if (ev.start > rowEnds[i]) {
+          rowEnds[i] = evEnd;
           ev._row = i;
           placed = true;
           break;
@@ -53,10 +59,58 @@
       }
       if (!placed) {
         ev._row = rowEnds.length;
-        rowEnds.push(effEnd);
+        rowEnds.push(evEnd);
       }
     });
     return rowEnds.length;
+  }
+
+  // Within one row, decide whether each event is rendered standalone (with label)
+  // or grouped into a cluster pill that shows just a count.
+  function clusterRow(rowEvents, zoom) {
+    const sorted = rowEvents.slice().sort(function (a, b) { return a.start - b.start; });
+    const items = [];
+    let i = 0;
+    while (i < sorted.length) {
+      const ev = sorted[i];
+      const startPx = (ev.start - TIME_START) * zoom;
+      const barWidth = Math.max(MIN_BAR_PX, (ev.end - ev.start) * zoom);
+      const endPx = startPx + barWidth;
+
+      const next = sorted[i + 1];
+      const nextStartPx = next ? (next.start - TIME_START) * zoom : Infinity;
+
+      const labelClaim = startPx + Math.max(barWidth, LABEL_PX);
+      const standalone = barWidth >= LABEL_PX || nextStartPx >= labelClaim + 4;
+
+      if (standalone) {
+        items.push({
+          kind: "event",
+          ev: ev,
+          startPx: startPx,
+          barWidth: barWidth,
+          hitWidth: Math.max(barWidth, LABEL_PX)
+        });
+        i++;
+      } else {
+        const cluster = { kind: "cluster", events: [ev], startPx: startPx, endPx: endPx };
+        i++;
+        while (i < sorted.length) {
+          const e2 = sorted[i];
+          const sp2 = (e2.start - TIME_START) * zoom;
+          const bw2 = Math.max(MIN_BAR_PX, (e2.end - e2.start) * zoom);
+          if (sp2 < cluster.endPx + LABEL_PX) {
+            cluster.events.push(e2);
+            cluster.endPx = Math.max(cluster.endPx, sp2 + bw2);
+            i++;
+          } else {
+            break;
+          }
+        }
+        items.push(cluster);
+      }
+    }
+    return items;
   }
 
   function renderRuler(width, zoom) {
@@ -98,7 +152,11 @@
 
     regions.forEach(function (r) {
       const list = eventsByRegion[r.id];
-      const rowCount = packRows(list, zoom);
+      const rowCount = packRows(list);
+      const byRow = [];
+      for (let i = 0; i < rowCount; i++) byRow.push([]);
+      list.forEach(function (ev) { byRow[ev._row].push(ev); });
+
       const lane = document.createElement("div");
       lane.className = "lane";
       lane.style.setProperty("--region-color", r.color);
@@ -113,25 +171,47 @@
       label.appendChild(document.createTextNode(r.name));
       lane.appendChild(label);
 
-      list.forEach(function (ev) {
-        const startPx = (ev.start - TIME_START) * zoom;
-        const span = Math.max(0, ev.end - ev.start);
-        const visualWidth = Math.max(MIN_EVENT_PX, span * zoom);
-        const div = document.createElement("div");
-        div.className = "event event-" + ev.type;
-        if (span === 0) div.classList.add("event-point");
-        div.style.left = startPx + "px";
-        div.style.top = (ROW_PADDING_TOP + ev._row * ROW_HEIGHT) + "px";
-        div.style.width = visualWidth + "px";
-        div._event = ev;
-        div._region = r;
+      byRow.forEach(function (rowEvents, rowIdx) {
+        const items = clusterRow(rowEvents, zoom);
+        const top = ROW_PADDING_TOP + rowIdx * ROW_HEIGHT;
 
-        const span1 = document.createElement("span");
-        span1.className = "event-label";
-        span1.textContent = ev.title;
-        div.appendChild(span1);
+        items.forEach(function (item) {
+          if (item.kind === "event") {
+            const ev = item.ev;
+            const div = document.createElement("div");
+            div.className = "event event-" + ev.type;
+            div.style.left = item.startPx + "px";
+            div.style.top = top + "px";
+            div.style.setProperty("--bar-width", item.barWidth + "px");
+            div.style.width = item.hitWidth + "px";
+            div._event = ev;
+            div._region = r;
 
-        lane.appendChild(div);
+            const lbl = document.createElement("span");
+            lbl.className = "event-label";
+            lbl.textContent = ev.title;
+            div.appendChild(lbl);
+
+            lane.appendChild(div);
+          } else {
+            const span = item.endPx - item.startPx;
+            const w = Math.max(CLUSTER_MIN_PX, span);
+            const div = document.createElement("div");
+            div.className = "event-cluster";
+            div.style.left = item.startPx + "px";
+            div.style.top = top + "px";
+            div.style.width = w + "px";
+            div._cluster = item;
+            div._region = r;
+
+            const num = document.createElement("span");
+            num.className = "cluster-count";
+            num.textContent = item.events.length;
+            div.appendChild(num);
+
+            lane.appendChild(div);
+          }
+        });
       });
 
       frag.appendChild(lane);
@@ -147,11 +227,12 @@
     renderLanes(width, pxPerYear);
   }
 
-  function setZoom(key) {
+  function setZoom(key, opts) {
     const newZoom = ZOOM_LEVELS[key];
     if (!newZoom) return;
+    opts = opts || {};
     const center = scroll.scrollLeft + scroll.clientWidth / 2;
-    const centerYear = TIME_START + center / pxPerYear;
+    const centerYear = opts.centerYear != null ? opts.centerYear : (TIME_START + center / pxPerYear);
     pxPerYear = newZoom;
     activeZoom = key;
     render();
@@ -182,7 +263,41 @@
     const items = regions.map(function (r) {
       return '<div class="legend-item"><span class="swatch" style="background:' + r.color + '"></span>' + r.name + "</div>";
     }).join("");
-    el.innerHTML = items + '<div class="hint">drag to pan &middot; scroll wheel = horizontal &middot; +/&minus; to zoom &middot; arrows to scroll</div>';
+    el.innerHTML = items + '<div class="hint">drag to pan &middot; wheel = horizontal &middot; +/&minus; to zoom &middot; click cluster pills to zoom in</div>';
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function showEventTooltip(el) {
+    const ev = el._event;
+    const r = el._region;
+    const duration = ev.end > ev.start ? " (" + (ev.end - ev.start) + " yr)" : "";
+    tooltip.innerHTML =
+      '<div><span class="tt-region" style="background:' + r.color + '">' + r.name + '</span>' +
+      '<span class="tt-type">' + ev.type + '</span></div>' +
+      '<strong>' + escapeHtml(ev.title) + '</strong>' +
+      '<div class="tt-meta">' + rangeOf(ev) + duration + '</div>' +
+      (ev.desc ? '<div class="tt-desc">' + escapeHtml(ev.desc) + '</div>' : '');
+    tooltip.hidden = false;
+  }
+
+  function showClusterTooltip(el) {
+    const c = el._cluster;
+    const r = el._region;
+    const list = c.events.slice(0, 10).map(function (e) {
+      return '<div class="tt-cluster-item"><span class="tt-yr">' + rangeOf(e) + '</span> ' + escapeHtml(e.title) + '</div>';
+    }).join("");
+    const more = c.events.length > 10 ? '<div class="tt-more">+ ' + (c.events.length - 10) + ' more</div>' : '';
+    tooltip.innerHTML =
+      '<div><span class="tt-region" style="background:' + r.color + '">' + r.name + '</span>' +
+      '<span class="tt-type">' + c.events.length + ' events</span></div>' +
+      '<div class="tt-cluster-list">' + list + more + '</div>' +
+      '<div class="tt-meta tt-hint">click to zoom in</div>';
+    tooltip.hidden = false;
   }
 
   // --- interactions ---
@@ -208,7 +323,6 @@
 
   scroll.addEventListener("scroll", updateCurrentYear, { passive: true });
 
-  // wheel: vertical scroll → horizontal scroll (when no horizontal intent already)
   scroll.addEventListener("wheel", function (e) {
     if (e.shiftKey) return;
     if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
@@ -217,11 +331,10 @@
     e.preventDefault();
   }, { passive: false });
 
-  // drag to pan
   let dragging = false, dragX = 0, dragScrollX = 0, didDrag = false;
   scroll.addEventListener("mousedown", function (e) {
     if (e.button !== 0) return;
-    if (e.target.closest(".event")) return;
+    if (e.target.closest(".event") || e.target.closest(".event-cluster")) return;
     dragging = true;
     didDrag = false;
     dragX = e.clientX;
@@ -239,38 +352,42 @@
     scroll.classList.remove("grabbing");
   });
 
-  // keyboard
+  scroll.addEventListener("click", function (e) {
+    const cl = e.target.closest(".event-cluster");
+    if (!cl || !cl._cluster) return;
+    if (didDrag) return;
+    const c = cl._cluster;
+    let mid = 0;
+    c.events.forEach(function (ev) { mid += (ev.start + ev.end) / 2; });
+    mid = mid / c.events.length;
+    const idx = ZOOM_ORDER.indexOf(activeZoom);
+    if (idx < ZOOM_ORDER.length - 1) {
+      setZoom(ZOOM_ORDER[idx + 1], { centerYear: mid });
+    } else {
+      jumpToYear(mid, true);
+    }
+    tooltip.hidden = true;
+  });
+
   window.addEventListener("keydown", function (e) {
     if (e.target.tagName === "INPUT") return;
     const step = scroll.clientWidth * (e.shiftKey ? 0.9 : 0.25);
     if (e.key === "ArrowRight") { scroll.scrollLeft += step; e.preventDefault(); }
     else if (e.key === "ArrowLeft") { scroll.scrollLeft -= step; e.preventDefault(); }
     else if (e.key === "+" || e.key === "=") {
-      const order = ["0.5", "1", "2", "4"];
-      const i = order.indexOf(activeZoom);
-      if (i < order.length - 1) setZoom(order[i + 1]);
+      const i = ZOOM_ORDER.indexOf(activeZoom);
+      if (i < ZOOM_ORDER.length - 1) setZoom(ZOOM_ORDER[i + 1]);
     } else if (e.key === "-" || e.key === "_") {
-      const order = ["0.5", "1", "2", "4"];
-      const i = order.indexOf(activeZoom);
-      if (i > 0) setZoom(order[i - 1]);
+      const i = ZOOM_ORDER.indexOf(activeZoom);
+      if (i > 0) setZoom(ZOOM_ORDER[i - 1]);
     }
   });
 
-  // tooltip
   scroll.addEventListener("mouseover", function (e) {
-    const el = e.target.closest(".event");
-    if (!el || !el._event) return;
-    const ev = el._event;
-    const r = el._region;
-    const range = (ev.start === ev.end) ? formatYear(ev.start) : (formatYear(ev.start) + " – " + formatYear(ev.end));
-    const duration = ev.end > ev.start ? " (" + (ev.end - ev.start) + " yr)" : "";
-    tooltip.innerHTML =
-      '<div><span class="tt-region" style="background:' + r.color + '">' + r.name + '</span>' +
-      '<span class="tt-type">' + ev.type + '</span></div>' +
-      '<strong>' + escapeHtml(ev.title) + '</strong>' +
-      '<div class="tt-meta">' + range + duration + '</div>' +
-      (ev.desc ? '<div style="margin-top:4px">' + escapeHtml(ev.desc) + '</div>' : '');
-    tooltip.hidden = false;
+    const evEl = e.target.closest(".event");
+    if (evEl && evEl._event) { showEventTooltip(evEl); return; }
+    const clEl = e.target.closest(".event-cluster");
+    if (clEl && clEl._cluster) { showClusterTooltip(clEl); return; }
   });
   scroll.addEventListener("mousemove", function (e) {
     if (tooltip.hidden) return;
@@ -283,19 +400,13 @@
     tooltip.style.top = top + "px";
   });
   scroll.addEventListener("mouseout", function (e) {
-    if (e.target.closest(".event")) tooltip.hidden = true;
+    if (e.target.closest(".event") || e.target.closest(".event-cluster")) {
+      tooltip.hidden = true;
+    }
   });
 
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, function (c) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
-    });
-  }
-
-  // --- init ---
   renderLegend();
   render();
-  // Start near the user's example era: 1760 (Seven Years War / American Revolution lead-up)
   requestAnimationFrame(function () {
     jumpToYear(1760, false);
     updateCurrentYear();

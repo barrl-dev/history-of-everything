@@ -215,76 +215,168 @@ body {
   background: var(--region-color);
 }
 
+/* ---------- Events ---------- */
+
 .event {
   position: absolute;
   height: 22px;
-  background: color-mix(in srgb, var(--region-color) 60%, #000);
-  border: 1px solid color-mix(in srgb, var(--region-color) 90%, #fff 10%);
-  border-radius: 4px;
-  color: white;
+  cursor: pointer;
   font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  --bar-width: 100%;
+}
+.event::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--bar-width);
+  min-width: 3px;
+  background: color-mix(in srgb, var(--region-color) 60%, #000);
+  border-radius: 3px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.35),
+    0 0 0 1px color-mix(in srgb, var(--region-color) 90%, #fff 10%);
+  transition: filter 0.08s ease, box-shadow 0.08s ease, transform 0.08s ease;
+  z-index: 0;
+}
+.event:hover::before {
+  filter: brightness(1.25);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 4px 14px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+.event:hover { z-index: 20; }
+
+.event-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
   display: flex;
   align-items: center;
-  padding: 0 6px;
-  overflow: hidden;
+  padding-left: 6px;
+  padding-right: 4px;
   white-space: nowrap;
-  cursor: pointer;
-  transition: transform 0.08s ease, box-shadow 0.08s ease, z-index 0s;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
-}
-.event:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.4);
-  z-index: 20;
-}
-.event-label {
-  text-overflow: ellipsis;
-  overflow: hidden;
   pointer-events: none;
-}
-.event-period {
-  background: linear-gradient(to bottom,
-    color-mix(in srgb, var(--region-color) 35%, #000),
-    color-mix(in srgb, var(--region-color) 25%, #000));
-  border-style: dashed;
-  border-color: color-mix(in srgb, var(--region-color) 60%, #fff 10%);
-  font-style: italic;
-  font-weight: 500;
-}
-.event-reign {
-  background: linear-gradient(to bottom,
-    color-mix(in srgb, var(--region-color) 70%, #000),
-    color-mix(in srgb, var(--region-color) 50%, #000));
-  border-color: color-mix(in srgb, var(--region-color) 95%, #fff 30%);
-}
-.event-war {
-  background: linear-gradient(to bottom,
-    color-mix(in srgb, var(--region-color) 70%, #c01010),
-    color-mix(in srgb, var(--region-color) 50%, #800));
-  border-color: color-mix(in srgb, var(--region-color) 80%, #ff5050);
-  font-weight: 600;
-}
-.event-religion {
-  background: color-mix(in srgb, var(--region-color) 60%, #806000);
-  border-color: gold;
-}
-.event-discovery {
-  background: color-mix(in srgb, var(--region-color) 55%, #2060c0);
-  border-color: #7fb6ff;
-}
-.event-cultural {
-  background: color-mix(in srgb, var(--region-color) 55%, #208060);
-  border-color: #6fe0a0;
+  color: white;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.95),
+    0 0 4px rgba(0, 0, 0, 0.7),
+    0 0 1px rgba(0, 0, 0, 0.9);
+  z-index: 1;
 }
 
-.event-point {
-  background: linear-gradient(90deg,
-    color-mix(in srgb, var(--region-color) 90%, white 15%) 0,
-    color-mix(in srgb, var(--region-color) 70%, #000) 14px,
-    color-mix(in srgb, var(--region-color) 30%, transparent) 100%);
-  border-left-width: 3px;
-  border-left-color: white;
+.event-period::before {
+  background: linear-gradient(to bottom,
+    color-mix(in srgb, var(--region-color) 38%, #000),
+    color-mix(in srgb, var(--region-color) 22%, #000));
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--region-color) 60%, #fff 10%),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  background-image:
+    linear-gradient(to bottom,
+      color-mix(in srgb, var(--region-color) 38%, #000),
+      color-mix(in srgb, var(--region-color) 22%, #000)),
+    repeating-linear-gradient(45deg, transparent 0, transparent 6px, rgba(255, 255, 255, 0.04) 6px, rgba(255, 255, 255, 0.04) 7px);
 }
+.event-period .event-label { font-style: italic; font-weight: 500; }
+
+.event-reign::before {
+  background: linear-gradient(to bottom,
+    color-mix(in srgb, var(--region-color) 75%, #000),
+    color-mix(in srgb, var(--region-color) 50%, #000));
+}
+
+.event-war::before {
+  background: linear-gradient(to bottom,
+    color-mix(in srgb, var(--region-color) 65%, #c01010),
+    color-mix(in srgb, var(--region-color) 45%, #800));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4),
+    0 0 0 1px color-mix(in srgb, var(--region-color) 70%, #ff5050);
+}
+.event-war .event-label { font-weight: 600; }
+
+.event-religion::before {
+  background: color-mix(in srgb, var(--region-color) 55%, #806000);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 215, 100, 0.3),
+    0 0 0 1px gold;
+}
+.event-discovery::before {
+  background: color-mix(in srgb, var(--region-color) 50%, #2060c0);
+  box-shadow:
+    inset 0 1px 0 rgba(180, 220, 255, 0.3),
+    0 0 0 1px #7fb6ff;
+}
+.event-cultural::before {
+  background: color-mix(in srgb, var(--region-color) 50%, #208060);
+  box-shadow:
+    inset 0 1px 0 rgba(160, 240, 200, 0.3),
+    0 0 0 1px #6fe0a0;
+}
+
+/* ---------- Cluster pills ---------- */
+
+.event-cluster {
+  position: absolute;
+  height: 22px;
+  cursor: pointer;
+  border-radius: 11px;
+  background: linear-gradient(to bottom,
+    color-mix(in srgb, var(--region-color) 45%, #000),
+    color-mix(in srgb, var(--region-color) 25%, #000));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4),
+    0 0 0 1px color-mix(in srgb, var(--region-color) 75%, #fff 15%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: filter 0.08s ease, box-shadow 0.08s ease, transform 0.08s ease;
+}
+.event-cluster::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: 9px;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent 0,
+    transparent 5px,
+    rgba(255, 255, 255, 0.07) 5px,
+    rgba(255, 255, 255, 0.07) 6px
+  );
+  pointer-events: none;
+}
+.event-cluster:hover {
+  filter: brightness(1.25);
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 6px 16px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.5);
+  z-index: 20;
+}
+.cluster-count {
+  position: relative;
+  z-index: 1;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+  letter-spacing: 0.2px;
+}
+
+/* ---------- Tooltip ---------- */
 
 .tooltip {
   position: fixed;
@@ -294,14 +386,15 @@ body {
   border-radius: 6px;
   padding: 10px 12px;
   font-size: 13px;
-  max-width: 320px;
+  max-width: 340px;
   pointer-events: none;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.7);
   line-height: 1.4;
 }
 .tooltip[hidden] { display: none; }
-.tooltip strong { display: block; font-size: 14px; margin-bottom: 2px; }
+.tooltip strong { display: block; font-size: 14px; margin: 4px 0 2px; }
 .tooltip .tt-meta { color: var(--fg-dim); font-size: 11px; font-variant-numeric: tabular-nums; }
+.tooltip .tt-desc { margin-top: 4px; color: var(--fg); }
 .tooltip .tt-region {
   display: inline-block;
   padding: 1px 6px;
@@ -321,6 +414,27 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+.tooltip .tt-cluster-list { margin-top: 6px; }
+.tooltip .tt-cluster-item {
+  font-size: 12px;
+  padding: 2px 0;
+  color: var(--fg);
+}
+.tooltip .tt-cluster-item .tt-yr {
+  color: var(--fg-dim);
+  font-variant-numeric: tabular-nums;
+  margin-right: 6px;
+  font-size: 11px;
+}
+.tooltip .tt-more {
+  font-size: 11px;
+  color: var(--fg-dim);
+  font-style: italic;
+  margin-top: 4px;
+}
+.tooltip .tt-hint { margin-top: 6px; font-style: italic; }
+
+/* ---------- Legend ---------- */
 
 .legend {
   display: flex;
